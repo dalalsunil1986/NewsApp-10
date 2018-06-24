@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">News App</string>
+
+    <string name="by_string">by %1$s</string>
+
+    <string name="paginator_text">Page %1$s of %2$s</string>
+
+    <!-- Error messages (response validation) -->
+    <string name="empty_text">No stories found.\nTry changing search parameters.</string>
+    <string name="no_internet_text">No internet connection.</string>
+
+    <!-- Content Descriptions -->
+    <string name="content_description_paginator_back_button">Back button</string>
+    <string name="content_description_paginator_forward_button">Forward button</string>
+
+</resources>
