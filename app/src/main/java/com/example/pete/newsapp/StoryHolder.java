@@ -45,8 +45,11 @@ public class StoryHolder extends RecyclerView.ViewHolder implements View.OnClick
         String author_text = "";
         if (!thisStory.getAuthor().equals("")) {
             author_text = String.format(context.getString(R.string.by_string), thisStory.getAuthor());
+            this.authorTextView.setText(author_text);
+            this.authorTextView.setVisibility(View.VISIBLE);
+        } else {
+            this.authorTextView.setVisibility(View.GONE);
         }
-        this.authorTextView.setText(author_text);
     }
 
     /*

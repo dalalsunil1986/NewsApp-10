@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     // Query parameters (used by .getQueryUrl() to build queries based on user input)
     // (See also: Story.currentPage and Story.totalPages)
     String query_orderBy = "newest";
-    String query_section = "commentisfree";
+    String query_section = "music";
 
     // Pagination variables
     StoryAdapter adapter;
