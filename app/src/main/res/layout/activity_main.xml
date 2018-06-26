@@ -4,21 +4,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
+    android:background="@color/theme_background_light"
     android:orientation="vertical">
 
     <ProgressBar
         android:id="@+id/progress_spinner"
-        android:visibility="gone"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
 
     <!-- Layout for a list of stories -->
-    <ListView
-        android:id="@+id/stories_list_view"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/stories_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:visibility="visible" />
+        android:orientation="vertical" />
 
     <!-- Empty View for when there's no data -->
     <TextView

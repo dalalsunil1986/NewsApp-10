@@ -1,13 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
-
-    <!-- Story list item de-emphasized text -->
+    <!-- Story list item colors -->
     <color name="textColorDeemphasized">#98a4b0</color>
-
-    <!-- Story list item emphasized text -->
     <color name="textColorEmphasized">#1c2832</color>
+
+    <!-- Guardian colors -->
+    <color name="theme_background_light">#e8eef1</color>
+    <color name="theme_background_medium">#454545</color>
+    <color name="theme_background_dark">#363636</color>
+    <color name="theme_accent">#7e0068</color>
+    <color name="theme_news">#c72306</color>
+    <color name="theme_news_dark">#87110b</color>
+    <color name="theme_opinion">#df6200</color>
+    <color name="theme_opinion_dark">#bc571d</color>
+    <color name="theme_sport">#2180c5</color>
+    <color name="theme_sport_dark">#185488</color>
+    <color name="theme_culture">#9f845c</color>
+    <color name="theme_culture_dark">#6a5942</color>
+    <color name="theme_lifestyle">#bb3d7f</color>
+    <color name="theme_lifestyle_dark">#7e0068</color>
+
+    <color name="colorPrimary">@color/theme_background_medium</color>
+    <color name="colorPrimaryDark">@color/theme_background_dark</color>
+    <color name="colorAccent">@color/theme_accent</color>
 
 </resources>

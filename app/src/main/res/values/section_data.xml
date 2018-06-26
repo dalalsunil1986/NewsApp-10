@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="news_sections">
+        <item>US news</item>
+        <item>World news</item>
+        <item>Environment</item>
+        <item>US politics</item>
+        <item>Business</item>
+        <item>Tech</item>
+        <item>Science</item>
+        <item>Homelessness</item>
+        <item>Animals farmed</item>
+    </string-array>
+
+    <string-array name="opinion_sections">
+        <item>Opinion</item>
+        <item>The Guardian view</item>
+        <item>Editorial</item>
+        <item>Columnists</item>
+        <item>Letters</item>
+        <item>Opinion videos</item>
+        <item>Cartoons</item>
+    </string-array>
+
+    <string-array name="sport_sections">
+        <item>World Cup 2018</item>
+        <item>Soccer</item>
+        <item>Football</item>
+        <item>NFL</item>
+        <item>Tennis</item>
+        <item>MLB</item>
+        <item>MLS</item>
+        <item>NBA</item>
+        <item>NHL</item>
+    </string-array>
+
+    <string-array name="culture_sections">
+        <item>Film</item>
+        <item>Books</item>
+        <item>Music</item>
+        <item>Art &amp; design</item>
+        <item>TV &amp; radio</item>
+        <item>Stage</item>
+        <item>Classical</item>
+        <item>Games</item>
+        <item>Art and design</item>
+    </string-array>
+
+    <string-array name="lifestyle_sections">
+        <item>Fashion</item>
+        <item>Food</item>
+        <item>Recipes</item>
+        <item>Love &amp; sex</item>
+        <item>Home &amp; garden</item>
+        <item>Health &amp; fitness</item>
+        <item>Family</item>
+        <item>Travel</item>
+        <item>Money</item>
+    </string-array>
+</resources>

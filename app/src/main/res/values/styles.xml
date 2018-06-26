@@ -8,11 +8,32 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="style_list_item_story">
+    <!-- A base style for all list_item_story TextViews -->
+    <style name="style_story">
         <item name="android:paddingLeft">4dp</item>
         <item name="android:paddingRight">4dp</item>
         <item name="android:paddingTop">2dp</item>
         <item name="android:paddingBottom">2dp</item>
+    </style>
+
+    <!-- Styles for individual list_item_story TextViews (inherits style_story) -->
+    <style name="style_story.section_name">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/textColorDeemphasized</item>
+    </style>
+
+    <style name="style_story.title">
+        <item name="android:textColor">@color/textColorEmphasized</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="style_story.date">
+        <item name="android:textColor">@color/textColorEmphasized</item>
+    </style>
+
+    <style name="style_story.author">
+        <item name="android:textColor">@color/textColorDeemphasized</item>
     </style>
 
     <style name="style_paginator">
