@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/menu_latest"
+            android:checked="true"
+            android:title="Latest Stories" />
+
+        <item
+            android:id="@+id/menu_section_news"
+            android:title="News" />
+
+        <item
+            android:id="@+id/menu_section_opinion"
+            android:title="Opinion" />
+
+        <item
+            android:id="@+id/menu_section_sport"
+            android:title="Sport" />
+
+        <item
+            android:id="@+id/menu_section_culture"
+            android:title="Culture" />
+
+        <item
+            android:id="@+id/menu_section_lifestyle"
+            android:title="Lifestyle" />
+    </group>
+
+</menu>

@@ -1,32 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
     android:background="@color/theme_background_light"
-    android:orientation="vertical">
+    android:fitsSystemWindows="true"
+    android:gravity="center"
+    tools:context=".MainActivity">
 
-    <ProgressBar
-        android:id="@+id/progress_spinner"
+    <!-- Toolbar (show nav drawer button) -->
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/theme_background_light">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:elevation="4dp"
+            app:titleTextColor="@color/white" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <!-- Progress Spinner (displays while waiting for initial response -->
+            <ProgressBar
+                android:id="@+id/progress_spinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="visible" />
+
+            <!-- Layout for a list of stories -->
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/stories_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone" />
+
+            <!-- Empty View for when there's no data -->
+            <TextView
+                android:id="@+id/empty_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textAlignment="center"
+                android:visibility="visible"
+                tools:text="No earthquakes found." />
+
+        </FrameLayout>
+
+    </android.support.design.widget.AppBarLayout>
+
+    <!-- Navigation Drawer -->
+    <!-- (must be outside the FrameLayout or else it won't work) -->
+    <android.support.design.widget.NavigationView
+        android:id="@+id/nav_view"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone" />
-
-    <!-- Layout for a list of stories -->
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/stories_recycler_view"
-        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical" />
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/menu_nav_drawer" />
 
-    <!-- Empty View for when there's no data -->
-    <TextView
-        android:id="@+id/empty_text_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAlignment="center"
-        android:visibility="gone"
-        tools:text="No earthquakes found." />
-
-</LinearLayout>
+</android.support.v4.widget.DrawerLayout>

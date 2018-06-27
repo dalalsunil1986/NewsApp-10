@@ -13,4 +13,19 @@
     <string name="content_description_paginator_back_button">Back button</string>
     <string name="content_description_paginator_forward_button">Forward button</string>
 
+    <!-- Section Id strings -->
+    <string name="section_news_ids">news|us-news|world|environment|politics|business|technology|science|animals-farmed</string>
+    <string name="section_opinion_ids">commentisfree</string>
+    <string name="section_sport_ids">sport|football</string>
+    <string name="section_culture_ids">culture|film|books|music|artanddesign|tv-and-radio|stage|games</string>
+    <string name="section_lifestyle_ids">lifeandstyle|fashion|travel|money</string>
+
+    <!-- Main Section names (Nav Drawer headers) -->
+    <string name="section_latest_stories">Latest Stories</string>
+    <string name="section_news">News</string>
+    <string name="section_opinion">Opinion</string>
+    <string name="section_sport">Sport</string>
+    <string name="section_culture">Culture</string>
+    <string name="section_lifestyle">Lifestyle</string>
+
 </resources>

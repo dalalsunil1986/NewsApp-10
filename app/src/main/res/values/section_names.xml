@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="news_sections">
+        <item>News</item>
         <item>US news</item>
         <item>World news</item>
         <item>Environment</item>
         <item>US politics</item>
+        <item>Politics</item>
         <item>Business</item>
         <item>Tech</item>
+        <item>Technology</item>
         <item>Science</item>
         <item>Homelessness</item>
         <item>Animals farmed</item>
@@ -23,6 +26,7 @@
     </string-array>
 
     <string-array name="sport_sections">
+        <item>Sport</item>
         <item>World Cup 2018</item>
         <item>Soccer</item>
         <item>Football</item>
@@ -35,11 +39,13 @@
     </string-array>
 
     <string-array name="culture_sections">
+        <item>Culture</item>
         <item>Film</item>
         <item>Books</item>
         <item>Music</item>
         <item>Art &amp; design</item>
         <item>TV &amp; radio</item>
+        <item>Television &amp; radio</item>
         <item>Stage</item>
         <item>Classical</item>
         <item>Games</item>
@@ -47,6 +53,8 @@
     </string-array>
 
     <string-array name="lifestyle_sections">
+        <item>Lifestyle</item>
+        <item>Life and style</item>
         <item>Fashion</item>
         <item>Food</item>
         <item>Recipes</item>

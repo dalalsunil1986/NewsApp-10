@@ -3,16 +3,21 @@ package com.example.pete.newsapp;
 import android.app.LoaderManager;
 import android.content.Context;
 import android.content.Loader;
+import android.content.res.Resources;
 import android.graphics.Rect;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -29,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import static com.example.pete.newsapp.Story.currentPage;
-import static com.example.pete.newsapp.Story.totalPages;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<ArrayList<Story>> {
 
@@ -61,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     // Query parameters (used by .getQueryUrl() to build queries based on user input)
     // (See also: Story.currentPage and Story.totalPages)
     String query_orderBy = "newest";
-    String query_section = "music";
+    String query_section = "";
 
     // Pagination variables
     StoryAdapter adapter;
@@ -72,6 +76,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     ProgressBar progressSpinner;
     RecyclerView storiesRecyclerView;
     View paginator;
+    DrawerLayout drawerLayout;
+    NavigationView navigationView;
+    MainActivity mainActivity;
 
     //endregion Constants and Instance Variables
 
@@ -88,10 +95,17 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        setTitle(HEADER);
-
         // Get View references (MainActivity)
         getViewReferences_MainActivity();
+
+        // Set up the Toolbar / Action Bar (show nav drawer icon)
+        navDrawer_setUpToolbar();
+
+        // Set Action Bar title
+        setTitle(HEADER);
+
+        // Define navigation view on click behaviors
+        navDrawer_setItemSelectedBehaviors();
 
         // Set the stories RecyclerView and empty TextView as "Gone" so that we only see the Progress Spinner
         setVisibilities(true, false, false);
@@ -122,7 +136,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     // Build the Query URL (using instance variables)
     private String getQueryUrl() {
-        String query = QUERY_BASE_URL + "&order-by=" + query_orderBy + "&section=" + query_section + "&page=" + currentPage + "&api-key=" + d(E);
+        // Build individual parameter arguments ("" if no argument provided)
+        String param_orderBy = query_orderBy.equals("") ? "" : "&order-by=" + query_orderBy;
+        String param_section = query_section.equals("") ? "" : "&section=" + query_section;
+
+        String query = QUERY_BASE_URL + param_orderBy + param_section + "&page=" + currentPage + "&api-key=" + d(E);
 
         if (DEBUG_LOG_API_QUERY_URLS) {
             Log.d("getQueryUrl", query);
@@ -236,9 +254,84 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         storiesRecyclerView = findViewById(R.id.stories_recycler_view);
         emptyView = findViewById(R.id.empty_text_view);
         progressSpinner = findViewById(R.id.progress_spinner);
+        drawerLayout = findViewById(R.id.main_drawer_layout);
+        navigationView = findViewById(R.id.nav_view);
+        mainActivity = this;
     }
 
     //endregion UI-related methods
+
+    //region Nav Drawer methods
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                drawerLayout.openDrawer(GravityCompat.START);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    // Define navigation view on click behaviors
+    private void navDrawer_setItemSelectedBehaviors() {
+        navigationView.setNavigationItemSelectedListener(item -> {
+            // set item as selected to persist highlight
+            item.setChecked(true);
+
+            // close drawer when item is selected
+            drawerLayout.closeDrawers();
+
+            Resources resources = getResources();
+            String itemTitle = item.getTitle().toString();
+
+            if (itemTitle.equals(resources.getString(R.string.section_latest_stories))) {
+                setTitle(resources.getString(R.string.section_latest_stories));
+                query_orderBy = "newest";
+                query_section = "";
+            } else if (itemTitle.equals(resources.getString(R.string.section_news))) {
+                setTitle(resources.getString(R.string.section_news));
+                query_section = resources.getString(R.string.section_news_ids);
+            } else if (itemTitle.equals(resources.getString(R.string.section_opinion))) {
+                setTitle(resources.getString(R.string.section_opinion));
+                query_section = resources.getString(R.string.section_opinion_ids);
+            } else if (itemTitle.equals(resources.getString(R.string.section_sport))) {
+                setTitle(resources.getString(R.string.section_sport));
+                query_section = resources.getString(R.string.section_sport_ids);
+            } else if (itemTitle.equals(resources.getString(R.string.section_culture))) {
+                setTitle(resources.getString(R.string.section_culture));
+                query_section = resources.getString(R.string.section_culture_ids);
+            } else if (itemTitle.equals(resources.getString(R.string.section_lifestyle))) {
+                setTitle(resources.getString(R.string.section_lifestyle));
+                query_section = resources.getString(R.string.section_lifestyle_ids);
+            }
+
+            // Reset and restart the Loading process
+            adapter.removeAll();
+
+            Story.currentPage = 1;
+
+            // Pass the URL in a Bundle
+            Bundle bundle = new Bundle();
+            bundle.putString("url", getQueryUrl());
+
+            // Restart the AsyncTaskLoader
+            getLoaderManager().restartLoader(LOADER_ID, bundle, mainActivity).forceLoad();
+
+            return true;
+        });
+    }
+
+    // Set up the Toolbar / Action Bar (show nav drawer icon)
+    private void navDrawer_setUpToolbar() {
+        android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        ActionBar actionbar = getSupportActionBar();
+        actionbar.setDisplayHomeAsUpEnabled(true);
+        actionbar.setHomeAsUpIndicator(R.drawable.ic_menu);
+    }
+
+    //endregion Nav Drawer methods
 
     //region RecyclerView Decorator Inner Classes
 
@@ -371,15 +464,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             // Remove the list_item_paginator_loading from the end of RecyclerView
             adapter.removeLoadingFooter();
             isLoadingNextPage = false;
+
+            // Add all the results to the adapter
             adapter.addAll(stories);
 
+            // Add list_item_paginator_loading to the end of RecyclerView
             if (!isLastPage()) {
                 adapter.addLoadingFooter();
             }
 
+            // Show only the RecyclerView
             setVisibilities(false, true, false);
         } else {
-            // No results
+            // No results. Show only the empty TextView
             if (adapter.getItemCount() == 0) {
                 setVisibilities(false, false, true);
             }

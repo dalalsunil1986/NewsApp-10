@@ -102,6 +102,21 @@ public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
     }
 
+    public void remove(Story story) {
+        int position = stories.indexOf(story);
+        if (position > -1) {
+            stories.remove(position);
+            notifyItemRemoved(position);
+        }
+    }
+
+    public void removeAll() {
+        isLoadingAdded = false;
+        while (getItemCount() > 0) {
+            remove(stories.get(0));
+        }
+    }
+
     public void addLoadingFooter() {
         isLoadingAdded = true;
         add(new Story("", "", "", "", ""));
