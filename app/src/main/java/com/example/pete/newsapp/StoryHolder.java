@@ -123,6 +123,11 @@ class StoryHolder extends RecyclerView.ViewHolder implements View.OnClickListene
 
         // If the Pillar name and Section name are the same, hide the Pillar TextView
         if (pillarNameTextView.getText().equals(sectionNameTextView.getText())) {
+            if (!setting_show_section && setting_show_pillar) {
+                // If the section name is hidden but the pillar name isn't
+                // show the section name instead of the pillar name
+                setting_show_section = true;
+            }
             setting_show_pillar = false;
         }
 

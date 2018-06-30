@@ -188,6 +188,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         query_pageSize = Integer.parseInt(setting_pageSize);
 
+        // todo: Use Uri.Builder for the next section of code:
+
         // Build individual parameter arguments ("" if no argument provided)
         String param_orderBy = query_orderBy.equals("") ? "" : "&order-by=" + query_orderBy;
         String param_section = query_sections.equals("") ? "" : "&section=" + query_sections;
