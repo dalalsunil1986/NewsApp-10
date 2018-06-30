@@ -3,7 +3,6 @@ package com.example.pete.newsapp;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Locale;
 
@@ -12,7 +11,7 @@ import static com.example.pete.newsapp.MainActivity.createUrl;
 /*
 Represents a Guardian news article
 */
-public class Story {
+class Story {
 
     // Constants
     // https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
@@ -26,15 +25,15 @@ public class Story {
     static int currentPage = 1;
     static int totalPages = 1;
 
+    private String pillarName; // Stories are organized like Pillar > Section
     private String sectionName;
-    private String title;
-    // Publication Date
-    private String date;
-    // Author = first contributor
-    private String author;
+    private String title; // The article title
+    private String date; // Publication Date
+    private String author; // Author = first contributor
     private String url;
 
-    public Story(String sectionName, String title, String date, String author, String url) {
+    public Story(String pillarName, String sectionName, String title, String date, String author, String url) {
+        setPillarName(pillarName);
         setSectionName(sectionName);
         setTitle(title);
         setDate(date);
@@ -120,6 +119,14 @@ public class Story {
 
     private void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getPillarName() {
+        return pillarName;
+    }
+
+    private void setPillarName(String pillarName) {
+        this.pillarName = pillarName;
     }
 
 }

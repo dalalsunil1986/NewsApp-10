@@ -12,15 +12,16 @@ import java.util.ArrayList;
 
 public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    // Constants: View types
+    // View types
     public enum recyclerViewTypes {
         STORY, FOOTER
     }
 
+    // Whether the loading list item is added as a footer
     private boolean isLoadingAdded = false;
 
-    private ArrayList<Story> stories;
-    private Context context;
+    private final ArrayList<Story> stories;
+    private final Context context;
 
     StoryAdapter(Context context, int itemResource, ArrayList<Story> stories) {
         this.context = context;
@@ -30,7 +31,7 @@ public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        RecyclerView.ViewHolder viewHolder = null;
+        RecyclerView.ViewHolder viewHolder;
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 
         // Return different viewHolders depending on the supplied viewType
@@ -91,7 +92,7 @@ public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
     }
 
-    public void add(Story story) {
+    private void add(Story story) {
         stories.add(story);
         notifyItemInserted(stories.size() - 1);
     }
@@ -102,7 +103,7 @@ public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
     }
 
-    public void remove(Story story) {
+    private void remove(Story story) {
         int position = stories.indexOf(story);
         if (position > -1) {
             stories.remove(position);
@@ -119,7 +120,7 @@ public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     public void addLoadingFooter() {
         isLoadingAdded = true;
-        add(new Story("", "", "", "", ""));
+        add(new Story("","", "", "", "", ""));
     }
 
     public void removeLoadingFooter() {

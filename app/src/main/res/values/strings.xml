@@ -2,8 +2,10 @@
     <string name="app_name">News App</string>
 
     <string name="by_string">by %1$s</string>
-
     <string name="paginator_text">Page %1$s of %2$s</string>
+
+    <!-- Divider between PillarName and SectionName (bullet point) -->
+    <string name="divider_text">\u2022</string>
 
     <!-- Error messages (response validation) -->
     <string name="empty_text">No stories found.\nTry changing search parameters.</string>
@@ -12,20 +14,117 @@
     <!-- Content Descriptions -->
     <string name="content_description_paginator_back_button">Back button</string>
     <string name="content_description_paginator_forward_button">Forward button</string>
+    <string name="content_description_nav_header">The Guardian logo</string>
 
-    <!-- Section Id strings -->
-    <string name="section_news_ids">news|us-news|world|environment|politics|business|technology|science|animals-farmed</string>
-    <string name="section_opinion_ids">commentisfree</string>
-    <string name="section_sport_ids">sport|football</string>
-    <string name="section_culture_ids">culture|film|books|music|artanddesign|tv-and-radio|stage|games</string>
-    <string name="section_lifestyle_ids">lifeandstyle|fashion|travel|money</string>
+    <!-- Settings -->
+    <string name="settings_menu_item">Settings</string>
+    <string name="settings_title">Settings</string>
 
-    <!-- Main Section names (Nav Drawer headers) -->
-    <string name="section_latest_stories">Latest Stories</string>
-    <string name="section_news">News</string>
-    <string name="section_opinion">Opinion</string>
-    <string name="section_sport">Sport</string>
-    <string name="section_culture">Culture</string>
-    <string name="section_lifestyle">Lifestyle</string>
+    <!-- Settings: List Preferences: Edition: User-Facing Text -->
+    <string name="setting_edition_text">Guardian Edition</string>
+    <string name="setting_edition_all_text">All</string>
+    <string name="setting_edition_au_text">Australia</string>
+    <string name="setting_edition_uk_text">United Kingdom</string>
+    <string name="setting_edition_us_text">United States</string>
+
+    <!-- Settings: List Preferences: Edition: Internal Names -->
+    <string name="edition_key_name">edition</string>
+    <string name="edition_default_value">@string/internal_edition_all_value</string>
+    <string name="internal_edition_all_value">all</string>
+    <string name="internal_edition_au_value">au</string>
+    <string name="internal_edition_uk_value">uk</string>
+    <string name="internal_edition_us_value">us</string>
+
+    <!-- Settings: List Preferences: Order By: User-Facing Text -->
+    <string name="setting_order_by_text">Order By</string>
+    <string name="setting_order_by_newest_text">Newest</string>
+    <string name="setting_order_by_oldest_text">Oldest</string>
+
+    <!-- Settings: List Preferences: Order By: Internal Names -->
+    <string name="order_by_key_name" translatable="false">order_by</string>
+    <string name="order_by_default_value" translatable="false">@string/api_order_by_newest</string>
+
+    <!-- Settings: List Preferences: Order By: API Values (also used as internal names for sorting options) -->
+    <string name="api_order_by_newest" translatable="false">newest</string>
+    <string name="api_order_by_oldest" translatable="false">oldest</string>
+    <string name="api_order_by_relevance" translatable="false">relevance</string>
+
+    <!-- Settings: List Preferences: Color Scheme: User-Facing Text -->
+    <string name="setting_color_scheme_text">Color Scheme</string>
+    <string name="setting_color_scheme_regular_text">Regular</string>
+    <string name="setting_color_scheme_dark_text">Dark</string>
+
+    <!-- Settings: List Preferences: Color Scheme: Internal Names -->
+    <string name="color_scheme_key_name" translatable="false">color_scheme</string>
+    <string name="color_scheme_default_value">@string/internal_color_scheme_regular</string>
+    <string name="internal_color_scheme_regular">regular</string>
+    <string name="internal_color_scheme_dark">dark</string>
+
+    <!-- Settings: List Preferences: Page Size: User-Facing Text -->
+    <string name="setting_page_size_text">Results Per Page</string>
+    <string name="setting_page_size_10_text">10 Stories</string>
+    <string name="setting_page_size_25_text">25 Stories</string>
+    <string name="setting_page_size_50_text">50 Stories</string>
+
+    <!-- Settings: List Preferences: Page Size: Internal Names -->
+    <string name="page_size_key_name" translatable="false">page_size</string>
+    <string name="page_size_default_value">@string/internal_page_size_10</string>
+    <string name="internal_page_size_10">10</string>
+    <string name="internal_page_size_25">25</string>
+    <string name="internal_page_size_50">50</string>
+
+    <!-- Settings: Switch Preferences: User-Facing Text -->
+    <string name="setting_show_pillar_text">Show Pillar Name</string>
+    <string name="setting_show_section_text">Show Section Name</string>
+    <string name="setting_show_date_text">Show Date</string>
+    <string name="setting_show_author_text">Show Author</string>
+
+    <!-- Settings: Switch Preferences: Internal Names -->
+    <string name="internal_show_pillar">show_pillar</string>
+    <string name="internal_show_section">show_section</string>
+    <string name="internal_show_date">show_date</string>
+    <string name="internal_show_author">show_author</string>
+
+    <!-- Settings: Switch Preferences: Default Values -->
+    <bool name="show_pillar_default_value">true</bool>
+    <bool name="show_section_default_value">true</bool>
+    <bool name="show_date_default_value">true</bool>
+    <bool name="show_author_default_value">true</bool>
+
+    <!-- Settings: Category (Group) Names -->
+    <string name="category_api_query_settings">API Query Settings</string>
+    <string name="category_user_interface_settings">User Interface Settings</string>
+
+    <!--
+    Pillar Id strings
+    These are lists of section ids
+    The Guardian API doesn't seem to support Pillar Names as a query parameter, but we want to browse by pillar
+    -->
+    <string name="pillar_news_section_ids" translatable="false">news|us-news|uk-news|australia-news|media|world|environment|politics|business|technology|science|animals-farmed|society|law|education|theguardian|global-development|social-care-network|healthcare-network|voluntary-sector-network|public-leaders-network|cities|membership|housing-network|higher-education-network|community|theobserver|inequality|help|business-to-business|teacher-network|info|small-business-network|jobsadvice|weather|katine|government-computing-network|society-professionals|guardian-professional|media-network|local|extra|cardiff|leeds|edinburgh</string>
+    <string name="pillar_opinion_section_ids" translatable="false">commentisfree</string>
+    <string name="pillar_sport_section_ids" translatable="false">sport|football</string>
+    <string name="pillar_culture_section_ids" translatable="false">culture|film|books|music|artanddesign|tv-and-radio|stage|games|childrens-books-site</string>
+    <string name="pillar_lifestyle_section_ids" translatable="false">lifeandstyle|fashion|travel|money|crosswords</string>
+    <string name="pillar_more_section_ids" translatable="false">careers|pwc-partner-zone|guardian-masterclasses|do-your-thing|global|gnm-press-office|the-square-route|take-your-car-to-ireland|audible-inspired-by-sound|icare-workplace-safety|discover-the-uk|axa-health-tech-and-you|time-for-what-matters|business-made-simple-with-vodafone|social-care-network/skills-for-care-partner-zone|creative-leaders-of-tomorrow|princess-royal-university-hospital-careers|why-we-travel|international-leadership|falmouth-university-creative-innovation|canon-bring-curiosity-to-life|cruk-careers|royal-college-of-psychiatrists-courses|priory-healthcare-careers|kathmandu-call-of-the-wild|fair-energy-futures|global-challenges-foundation|lincolnshire-children-s-services|untapped-usa|kent-nhs|cricket-has-no-boundaries|anglicare-nurturing-your-body-and-mind|bank-australia-protecting-our-future|business-call-to-action-partnerzone|spring-for-the-senses|explore-national-parks|clinique-beyond-beauty|new-professionals-in-the-nhs|cardiff-and-vale-university-health-board|mobile|get-into-teaching|gnm-archive|gnmeducationcentre|schooltrips|eyewitness-subscriber|enterprise|oxfordmediaconvention|journalismcompetition|resource|guardian-films|canneslions|radioreborn|newcode|open-platform|activate|global-development-professionals-network|about|gpc|publicservicesawards|charity-awards-2009|greencommunityheroes|cleantechrevolution2009|sustainability|globalcleantech100|megas|coventry-children-s-services|researchers-in-schools|greenwich-university-apprenticeships|industry-superfunds-advocating-for-the-australian-worker|nab-more-that-matters|social-entrepreneurs-solving-problems-around-the-world|ocr-examiners|life-outside-lectures-with-goldsmiths|breakthrough-science|sanofi-healthcare|discover-abu-dhabi|your-financial-future|visit-las-vegas|the-home-team|mi5-mobile-surveillance-officers|slough-childrens-services|targetjobs|business-breakthroughs-with-spotcap|20th-century-fox-isle-of-dogs|uq-business-school-accelerating-my-career|partner-zone-university-of-law|qantas-konnichiwa-osaka|barclays-lets-go-forward|coming-to-america-a-modern-retelling|visit-walt-disney-world|powershop-the-communities-of-power|working-in-development|20th-century-fox-red-sparrow|guardian-us-press-office|qantas-business-rewards-rewarding-australian-small-business|discover-hong-kong-like-a-local|australian-ethical-invest-for-a-better-world|school-of-rock-musical|20th-century-fox-3-billboards-outside-ebbing-missouri|innovative-sustainability|monash-university-pursuit-of-knowledge|universal-sony-pictures-home-entertainment-victoria-and-abdul|telfast-live-life--freely|greater-bank-honest-banking-heres-how|world-vision-the-gift-that-lasts-a-lifetime|sustainable-business|changingmediasummit|innovation-education|video-advertising|student-media-awards-2010|observer-food-monthly-awards|classroom-innovation|young-arts-critic-competition|achievementsaward</string>
+
+    <!-- Main Pillar Names (as they appear on the website; used as Nav Drawer headers) -->
+    <string name="nav_latest_stories_title">Latest Stories</string>
+    <string name="pillar_news">News</string>
+    <string name="pillar_opinion">Opinion</string>
+    <string name="pillar_sport">Sport</string>
+    <string name="pillar_culture">Culture</string>
+    <string name="pillar_lifestyle">Lifestyle</string>
+    <string name="pillar_more">More</string>
+
+    <!--
+    Internal Pillar Names
+    Supports divergence between user-facing and internal pillar names (the API calls "Culture": "Arts" for example)
+    Supports translation of the user-facing pillar names without breaking API calls
+     -->
+    <string name="api_pillar_news" translatable="false">News</string>
+    <string name="api_pillar_opinion" translatable="false">Opinion</string>
+    <string name="api_pillar_sport" translatable="false">Sport</string>
+    <string name="api_pillar_culture" translatable="false">Arts</string>
+    <string name="api_pillar_lifestyle" translatable="false">Lifestyle</string>
 
 </resources>

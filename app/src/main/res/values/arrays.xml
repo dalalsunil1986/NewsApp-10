@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+This resource file builds String arrays from values in strings.xml
+to be used by the Preference screen ListPreference items
+-->
+<resources>
+
+    <!-- Settings: Edition -->
+    <string-array name="settings_edition_names">
+        <item>@string/setting_edition_all_text</item>
+        <item>@string/setting_edition_au_text</item>
+        <item>@string/setting_edition_uk_text</item>
+        <item>@string/setting_edition_us_text</item>
+    </string-array>
+    <string-array name="settings_edition_values">
+        <item>@string/internal_edition_all_value</item>
+        <item>@string/internal_edition_au_value</item>
+        <item>@string/internal_edition_us_value</item>
+        <item>@string/internal_edition_uk_value</item>
+    </string-array>
+
+    <!-- Settings: Order By -->
+    <string-array name="settings_order_by_names">
+        <item>@string/setting_order_by_newest_text</item>
+        <item>@string/setting_order_by_oldest_text</item>
+    </string-array>
+    <string-array name="settings_order_by_values">
+        <item>@string/api_order_by_newest</item>
+        <item>@string/api_order_by_oldest</item>
+    </string-array>
+
+    <!-- Settings: Color Scheme -->
+    <string-array name="settings_color_scheme_names">
+        <item>@string/setting_color_scheme_regular_text</item>
+        <item>@string/setting_color_scheme_dark_text</item>
+    </string-array>
+    <string-array name="settings_color_scheme_values">
+        <item>@string/internal_color_scheme_regular</item>
+        <item>@string/internal_color_scheme_dark</item>
+    </string-array>
+
+    <!-- Settings: Page Size -->
+    <string-array name="settings_page_size_names">
+        <item>@string/setting_page_size_10_text</item>
+        <item>@string/setting_page_size_25_text</item>
+        <item>@string/setting_page_size_50_text</item>
+    </string-array>
+    <string-array name="settings_page_size_values">
+        <item>@string/internal_page_size_10</item>
+        <item>@string/internal_page_size_25</item>
+        <item>@string/internal_page_size_50</item>
+    </string-array>
+
+</resources>

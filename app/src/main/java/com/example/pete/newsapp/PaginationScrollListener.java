@@ -3,11 +3,11 @@ package com.example.pete.newsapp;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
-public abstract class PaginationScrollListener extends RecyclerView.OnScrollListener {
+abstract class PaginationScrollListener extends RecyclerView.OnScrollListener {
 
     // See: https://blog.iamsuleiman.com/android-pagination-tutorial-getting-started-recyclerview/
 
-    LinearLayoutManager layoutManager;
+    private final LinearLayoutManager layoutManager;
 
     PaginationScrollListener(LinearLayoutManager layoutManager) {
         this.layoutManager = layoutManager;

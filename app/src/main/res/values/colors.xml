@@ -3,6 +3,7 @@
     <!-- Story list item colors -->
     <color name="textColorDeemphasized">#98a4b0</color>
     <color name="textColorEmphasized">#1c2832</color>
+    <color name="color_pillar_section_divider">@color/theme_background_medium</color>
 
     <!-- Guardian colors -->
     <color name="theme_background_light">#e8eef1</color>

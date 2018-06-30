@@ -16,8 +16,9 @@ import static com.example.pete.newsapp.MainActivity.DEBUG_SIMULATE_NO_RESULTS;
 import static com.example.pete.newsapp.MainActivity.DEBUG_SIMULATE_SLOW_CONNECTION;
 import static com.example.pete.newsapp.MainActivity.makeHttpRequest;
 
-public class StoryLoader extends AsyncTaskLoader<ArrayList<Story>> {
-    private URL url;
+class StoryLoader extends AsyncTaskLoader<ArrayList<Story>> {
+
+    private final URL url;
 
     StoryLoader(Context context, URL url) {
         super(context);
@@ -25,6 +26,7 @@ public class StoryLoader extends AsyncTaskLoader<ArrayList<Story>> {
     }
 
     @Override
+    // Perform the HTTP request, get JSON String, pass String to extractStories
     public ArrayList<Story> loadInBackground() {
         // Simulate a slow internet connection (test the progress spinner animation)
         if (DEBUG_SIMULATE_SLOW_CONNECTION) {
@@ -78,6 +80,7 @@ public class StoryLoader extends AsyncTaskLoader<ArrayList<Story>> {
             for (int e = 0; e < resultsArray.length(); e++) {
                 JSONObject resultObject = resultsArray.getJSONObject(e);
 
+                String pillarName = resultObject.optString("pillarName");
                 String sectionName = resultObject.optString("sectionName");
                 String title = resultObject.optString("webTitle");
                 String date = resultObject.optString("webPublicationDate");
@@ -96,7 +99,7 @@ public class StoryLoader extends AsyncTaskLoader<ArrayList<Story>> {
                     author = firstTagObject.optString("webTitle");
                 }
 
-                Story thisStory = new Story(sectionName, title, date, author, url);
+                Story thisStory = new Story(pillarName, sectionName, title, date, author, url);
 
                 stories.add(thisStory);
             }
@@ -107,4 +110,5 @@ public class StoryLoader extends AsyncTaskLoader<ArrayList<Story>> {
         // Return the list of stories
         return stories;
     }
+
 }

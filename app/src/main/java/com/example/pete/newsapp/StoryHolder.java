@@ -2,21 +2,23 @@ package com.example.pete.newsapp;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.util.Arrays;
+import static com.example.pete.newsapp.MainActivity.sharedPreferences;
 
-import static com.example.pete.newsapp.MainActivity.USE_DARK_THEME_COLORS;
+class StoryHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-public class StoryHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-
-    private Context context;
+    private final Context context;
     private Story thisStory;
 
     // View references
+    private TextView pillarNameTextView;
+    private TextView dividerPillarSectionTextView;
     private TextView sectionNameTextView;
     private TextView storyTitleTextView;
     private TextView dateTextView;
@@ -36,13 +38,17 @@ public class StoryHolder extends RecyclerView.ViewHolder implements View.OnClick
     public void bindStory(Story story) {
         this.thisStory = story;
 
+        this.pillarNameTextView.setText(thisStory.getPillarName());
         this.sectionNameTextView.setText(thisStory.getSectionName());
-        setSectionColor(thisStory.getSectionName());
+        setPillarAndSectionColors(thisStory.getPillarName());
+
+        this.dividerPillarSectionTextView.setText(getStringResource(R.string.divider_text));
+        this.dividerPillarSectionTextView.setTextColor(getColorResource(R.color.color_pillar_section_divider));
 
         this.storyTitleTextView.setText(thisStory.getTitle());
         this.dateTextView.setText(thisStory.getDate());
 
-        String author_text = "";
+        String author_text;
         if (!thisStory.getAuthor().equals("")) {
             author_text = String.format(context.getString(R.string.by_string), thisStory.getAuthor());
             this.authorTextView.setText(author_text);
@@ -50,62 +56,92 @@ public class StoryHolder extends RecyclerView.ViewHolder implements View.OnClick
         } else {
             this.authorTextView.setVisibility(View.GONE);
         }
+
+        // Show or hide UI elements based on user preferences
+        setUiVisibilities();
     }
 
     /*
     Changes the text color of the sectionNameTextView
     Section colors are based on Guardian theme colors in colors.xml resource
     */
-    private void setSectionColor(String sectionName) {
-        int color = 0;
+    private void setPillarAndSectionColors(String pillarName) {
+        int color;
 
-        if (USE_DARK_THEME_COLORS) {
-            // Use dark variations of theme colors
-            switch (getSectionName(sectionName)) {
-                case "news":
-                    color = context.getResources().getColor(R.color.theme_news_dark);
-                    break;
-                case "opinion":
-                    color = context.getResources().getColor(R.color.theme_opinion_dark);
-                    break;
-                case "sport":
-                    color = context.getResources().getColor(R.color.theme_sport_dark);
-                    break;
-                case "culture":
-                    color = context.getResources().getColor(R.color.theme_culture_dark);
-                    break;
-                case "lifestyle":
-                    color = context.getResources().getColor(R.color.theme_lifestyle_dark);
-                    break;
-                default:
-                    color = context.getResources().getColor(R.color.textColorDeemphasized);
-                    break;
-            }
+        // Get the color scheme from preferences
+        String setting_color_scheme =
+                sharedPreferences.getString(
+                        getStringResource(R.string.color_scheme_key_name),
+                        getStringResource(R.string.color_scheme_default_value));
+
+        // Interpret the color scheme as a boolean
+        Boolean USE_DARK_THEME_COLORS = setting_color_scheme.equals(getStringResource(R.string.internal_color_scheme_dark));
+
+        // Use dark or regular variations of theme colors. See conditional operator in .getColor statements
+        // Can't use switch statement due to "non-constant" String resources
+        if (pillarName.equals(getStringResource(R.string.api_pillar_news))) {
+            color = getColorResource(USE_DARK_THEME_COLORS ? R.color.theme_news_dark : R.color.theme_news);
+        } else if (pillarName.equals(getStringResource(R.string.api_pillar_opinion))) {
+            color = getColorResource(USE_DARK_THEME_COLORS ? R.color.theme_opinion_dark : R.color.theme_opinion);
+        } else if (pillarName.equals(getStringResource(R.string.api_pillar_sport))) {
+            color = getColorResource(USE_DARK_THEME_COLORS ? R.color.theme_sport_dark : R.color.theme_sport);
+        } else if (pillarName.equals(getStringResource(R.string.api_pillar_culture))) {
+            color = getColorResource(USE_DARK_THEME_COLORS ? R.color.theme_culture_dark : R.color.theme_culture);
+        } else if (pillarName.equals(getStringResource(R.string.api_pillar_lifestyle))) {
+            color = getColorResource(USE_DARK_THEME_COLORS ? R.color.theme_lifestyle_dark : R.color.theme_lifestyle);
+        } else if (pillarName.equals("")) {
+            // More Pillar
+            color = getColorResource(USE_DARK_THEME_COLORS ? R.color.theme_background_medium : R.color.theme_background_dark);
         } else {
-            // Use regular variations of theme colors
-            switch (getSectionName(sectionName)) {
-                case "news":
-                    color = context.getResources().getColor(R.color.theme_news);
-                    break;
-                case "opinion":
-                    color = context.getResources().getColor(R.color.theme_opinion);
-                    break;
-                case "sport":
-                    color = context.getResources().getColor(R.color.theme_sport);
-                    break;
-                case "culture":
-                    color = context.getResources().getColor(R.color.theme_culture);
-                    break;
-                case "lifestyle":
-                    color = context.getResources().getColor(R.color.theme_lifestyle);
-                    break;
-                default:
-                    color = context.getResources().getColor(R.color.textColorDeemphasized);
-                    break;
-            }
+            color = getColorResource(R.color.textColorDeemphasized);
         }
 
+        this.pillarNameTextView.setTextColor(color);
         this.sectionNameTextView.setTextColor(color);
+    }
+
+    // Show or hide UI elements based on user preferences
+    private void setUiVisibilities() {
+        // Get preferences
+        boolean setting_show_pillar = sharedPreferences.getBoolean(
+                getStringResource(R.string.internal_show_pillar),
+                getBooleanResource(R.bool.show_pillar_default_value));
+        boolean setting_show_section = sharedPreferences.getBoolean(
+                getStringResource(R.string.internal_show_section),
+                getBooleanResource(R.bool.show_section_default_value));
+        boolean setting_show_date = sharedPreferences.getBoolean(
+                getStringResource(R.string.internal_show_date),
+                getBooleanResource(R.bool.show_date_default_value));
+        boolean setting_show_author = sharedPreferences.getBoolean(
+                getStringResource(R.string.internal_show_author),
+                getBooleanResource(R.bool.show_author_default_value));
+
+        // If the Pillar name is blank, we need to hide the Pillar TextView (happens in the "More" Pillar)
+        if (pillarNameTextView.getText().equals("")) {
+            setting_show_pillar = false;
+        }
+
+        // If the Pillar name and Section name are the same, hide the Pillar TextView
+        if (pillarNameTextView.getText().equals(sectionNameTextView.getText())) {
+            setting_show_pillar = false;
+        }
+
+        // Set visibilities
+        pillarNameTextView.setVisibility(setting_show_pillar ? View.VISIBLE : View.GONE);
+        sectionNameTextView.setVisibility(setting_show_section ? View.VISIBLE : View.GONE);
+        dateTextView.setVisibility(setting_show_date ? View.VISIBLE : View.GONE);
+        authorTextView.setVisibility(setting_show_author ? View.VISIBLE : View.GONE);
+
+        // If we have Pillar but not Section showing, Pillar needs to have layout_weight="1" to push the Date to the right
+        if (setting_show_pillar && !setting_show_section) {
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    0, LinearLayout.LayoutParams.MATCH_PARENT, 1.0f);
+
+            pillarNameTextView.setLayoutParams(params);
+        }
+
+        // Hide the divider if either Pillar Name or Section Name are hidden
+        dividerPillarSectionTextView.setVisibility(setting_show_pillar && setting_show_section ? View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -118,63 +154,30 @@ public class StoryHolder extends RecyclerView.ViewHolder implements View.OnClick
     }
 
     private void getViewReferences(View itemView) {
-        this.sectionNameTextView = itemView.findViewById(R.id.list_item_story_section_name);
-        this.storyTitleTextView = itemView.findViewById(R.id.list_item_story_title);
-        this.dateTextView = itemView.findViewById(R.id.list_item_story_date);
-        this.authorTextView = itemView.findViewById(R.id.list_item_story_author);
+        pillarNameTextView = itemView.findViewById(R.id.list_item_story_pillar_name);
+        dividerPillarSectionTextView = itemView.findViewById(R.id.list_item_divider_pillar_section);
+        sectionNameTextView = itemView.findViewById(R.id.list_item_story_section_name);
+        storyTitleTextView = itemView.findViewById(R.id.list_item_story_title);
+        dateTextView = itemView.findViewById(R.id.list_item_story_date);
+        authorTextView = itemView.findViewById(R.id.list_item_story_author);
     }
 
-    //region Section identification methods
+    private String getStringResource(int resourceID) {
+        Resources resources = context.getResources();
 
-    // Return a String identifying the section header (which helps set colors)
-    private String getSectionName(String sectionName) {
-        if (isNewsSection(sectionName)) {
-            sectionName = "news";
-        } else if (isOpinionSection(sectionName)) {
-            sectionName = "opinion";
-        } else if (isSportSection(sectionName)) {
-            sectionName = "sport";
-        } else if (isCultureSection(sectionName)) {
-            sectionName = "culture";
-        } else if (isLifestyleSection(sectionName)) {
-            sectionName = "lifestyle";
-        } else {
-            sectionName = "";
-        }
-
-        return sectionName;
+        return resources.getString(resourceID);
     }
 
-    private boolean isNewsSection(String sectionName) {
-        String[] news_sections = context.getResources().getStringArray(R.array.news_sections);
+    private boolean getBooleanResource(int resourceID) {
+        Resources resources = context.getResources();
 
-        return Arrays.asList(news_sections).contains(sectionName);
+        return resources.getBoolean(resourceID);
     }
 
-    private boolean isOpinionSection(String sectionName) {
-        String[] opinion_sections = context.getResources().getStringArray(R.array.opinion_sections);
+    private int getColorResource(int resourceID) {
+        Resources resources = context.getResources();
 
-        return Arrays.asList(opinion_sections).contains(sectionName);
+        return resources.getColor(resourceID);
     }
-
-    private boolean isSportSection(String sectionName) {
-        String[] sport_sections = context.getResources().getStringArray(R.array.sport_sections);
-
-        return Arrays.asList(sport_sections).contains(sectionName);
-    }
-
-    private boolean isCultureSection(String sectionName) {
-        String[] culture_sections = context.getResources().getStringArray(R.array.culture_sections);
-
-        return Arrays.asList(culture_sections).contains(sectionName);
-    }
-
-    private boolean isLifestyleSection(String sectionName) {
-        String[] lifestyle_sections = context.getResources().getStringArray(R.array.lifestyle_sections);
-
-        return Arrays.asList(lifestyle_sections).contains(sectionName);
-    }
-
-    //endregion
 
 }

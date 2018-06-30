@@ -5,13 +5,13 @@
     android:id="@+id/main_drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/theme_background_light"
     android:fitsSystemWindows="true"
     android:gravity="center"
     tools:context=".MainActivity">
 
     <!-- Toolbar (show nav drawer button) -->
     <android.support.design.widget.AppBarLayout
+        android:id="@+id/main_app_bar_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/theme_background_light">
@@ -22,7 +22,9 @@
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
             android:elevation="4dp"
-            app:titleTextColor="@color/white" />
+            android:theme="@style/style_toolbar"
+            app:titleTextColor="@color/white"
+            tools:targetApi="lollipop" />
 
         <FrameLayout
             android:layout_width="match_parent"

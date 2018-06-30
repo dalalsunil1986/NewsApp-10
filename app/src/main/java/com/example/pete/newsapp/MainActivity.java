@@ -2,11 +2,14 @@ package com.example.pete.newsapp;
 
 import android.app.LoaderManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Rect;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.preference.PreferenceManager;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -16,6 +19,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -52,8 +56,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static final int SHIFT_SEED = 3;
 
     // User Interface-related Constants
-    private static final String HEADER = "The Guardian";
-    public static final boolean USE_DARK_THEME_COLORS = false; // Affects section name colors
     private static final int VERTICAL_SPACING_RECYCLER_VIEW = 0;
 
     // Set these booleans to test response validation behaviors
@@ -62,31 +64,40 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public static final boolean DEBUG_SIMULATE_NO_RESULTS = false;
     private static final boolean DEBUG_LOG_API_QUERY_URLS = true;
 
+    // Settings / Preferences
+    public static SharedPreferences sharedPreferences;
+
     // Query parameters (used by .getQueryUrl() to build queries based on user input)
     // (See also: Story.currentPage and Story.totalPages)
-    String query_orderBy = "newest";
-    String query_section = "";
+    private String query_orderBy = "newest"; // This is used instead of the settings.order_by in certain contexts
+    private String query_sections = ""; // Since the API doesn't support Pillars, this is a list of sections known to be in the selected Pillar
+    private int query_pageSize = 10;
+    private String query_edition = "";
 
     // Pagination variables
-    StoryAdapter adapter;
+    private StoryAdapter adapter;
     private boolean isLoadingNextPage = false;
 
     // View References
-    TextView emptyView;
-    ProgressBar progressSpinner;
-    RecyclerView storiesRecyclerView;
-    View paginator;
-    DrawerLayout drawerLayout;
-    NavigationView navigationView;
-    MainActivity mainActivity;
+    private TextView emptyView;
+    private ProgressBar progressSpinner;
+    private RecyclerView storiesRecyclerView;
+    private android.support.design.widget.AppBarLayout appBarLayout;
+    private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
+    private MainActivity mainActivity;
 
     //endregion Constants and Instance Variables
 
     //region Project Notes
     /*
-    todo: implement Navigation Drawer (see TourGuideApp) (fragments)
-    todo: browse sections via  Navigation Drawer (discover & confirm sections via 'guardian sections.json')
-
+    +: implement Navigation Drawer (see TourGuideApp) (fragments)
+    +: browse sections via  Navigation Drawer (discover & confirm sections via 'guardian sections.json')
+    +: implement Settings screen
+    todo: Handle screen rotation (don't forget which Pillar was last selected)
+        (This should also solve a problem with returning to MainActivity from the SettingsActivity)
+        (Be wary of setting the page number in MainActivity.onCreate.
+         Maybe it shouldn't be set in onCreate once the above issue has been solved.)
     */
     //endregion Project Notes
 
@@ -98,11 +109,23 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         // Get View references (MainActivity)
         getViewReferences_MainActivity();
 
+        // Get Preferences (store as as instance variable of MainActivity)
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // Set the default Preference values (doesn't happen automatically for some reason)
+        PreferenceManager.setDefaultValues(this, R.xml.settings, false);
+
+        // Make sure we're on the first page of results when entering MainActivity
+        Story.currentPage = 1;
+
+        // Set UI colors based on user preference
+        setUIColors();
+
         // Set up the Toolbar / Action Bar (show nav drawer icon)
         navDrawer_setUpToolbar();
 
         // Set Action Bar title
-        setTitle(HEADER);
+        setTitle(getString(R.string.nav_latest_stories_title));
 
         // Define navigation view on click behaviors
         navDrawer_setItemSelectedBehaviors();
@@ -124,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
 
         // Create an adapter and populate the ListView
-        setRecyclerViewAdapter(this, new ArrayList<Story>());
+        setRecyclerViewAdapter(this, new ArrayList<>());
 
         // Pass the URL in a Bundle
         Bundle bundle = new Bundle();
@@ -136,11 +159,42 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     // Build the Query URL (using instance variables)
     private String getQueryUrl() {
+        // Get settings
+        String setting_edition = sharedPreferences.getString(
+                getString(R.string.edition_key_name),
+                getString(R.string.edition_default_value));
+        String setting_orderBy = sharedPreferences.getString(
+                getString(R.string.order_by_key_name),
+                getString(R.string.order_by_default_value));
+        String setting_pageSize = sharedPreferences.getString(
+                getString(R.string.page_size_key_name),
+                getString(R.string.page_size_default_value));
+
+        // Set query_ variables according to setting_ variables: (sometimes query_ overrides setting_)
+
+        // Override edition if this is "all" (in which case it needs to be blank)
+        if (setting_edition.equals(getString(R.string.internal_edition_all_value))) {
+            query_edition = "";
+        } else {
+            query_edition = setting_edition;
+        }
+
+        // Override order_by if this is a "latest stories" query
+        if (!query_sections.equals("")) {
+            query_orderBy = setting_orderBy;
+        }
+
+        // todo: Ignore orderBy setting if a search is being done (order_by = relevance)
+
+        query_pageSize = Integer.parseInt(setting_pageSize);
+
         // Build individual parameter arguments ("" if no argument provided)
         String param_orderBy = query_orderBy.equals("") ? "" : "&order-by=" + query_orderBy;
-        String param_section = query_section.equals("") ? "" : "&section=" + query_section;
+        String param_section = query_sections.equals("") ? "" : "&section=" + query_sections;
+        String param_page_size = "&page-size=" + query_pageSize;
+        String param_edition = query_edition.equals("") ? "" : "&production-office=" + query_edition;
 
-        String query = QUERY_BASE_URL + param_orderBy + param_section + "&page=" + currentPage + "&api-key=" + d(E);
+        String query = QUERY_BASE_URL + param_orderBy + param_section + param_page_size + "&page=" + currentPage + "&api-key=" + d(E);
 
         if (DEBUG_LOG_API_QUERY_URLS) {
             Log.d("getQueryUrl", query);
@@ -149,7 +203,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         return query;
     }
 
-    //region encoding / decoding
+    //region encoding / decoding sensitive data
 
     /*
     Encode a given String
@@ -173,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         return new String(bytesD, Charset.forName(ENCODING));
     }
 
-    //endregion encoding / decoding
+    //endregion encoding / decoding sensitive data
 
     //region UI-related methods
 
@@ -254,9 +308,28 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         storiesRecyclerView = findViewById(R.id.stories_recycler_view);
         emptyView = findViewById(R.id.empty_text_view);
         progressSpinner = findViewById(R.id.progress_spinner);
+        appBarLayout = findViewById(R.id.main_app_bar_layout);
         drawerLayout = findViewById(R.id.main_drawer_layout);
         navigationView = findViewById(R.id.nav_view);
         mainActivity = this;
+    }
+
+    // Set theme colors based on user preference (list items' colors are set in StoryHolder.setPillarAndSectionColors)
+    private void setUIColors() {
+        // Get the color scheme from preferences
+        String setting_color_scheme =
+                sharedPreferences.getString(
+                        getString(R.string.color_scheme_key_name),
+                        getString(R.string.color_scheme_default_value));
+
+        // Interpret the color scheme as a boolean
+        Boolean USE_DARK_THEME_COLORS = setting_color_scheme.equals(getString(R.string.internal_color_scheme_dark));
+
+        if (USE_DARK_THEME_COLORS) {
+            appBarLayout.setBackgroundColor(getColorResource(R.color.theme_background_medium));
+        } else {
+            appBarLayout.setBackgroundColor(getColorResource(R.color.theme_background_light));
+        }
     }
 
     //endregion UI-related methods
@@ -267,13 +340,27 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
+                // Nav Drawer
                 drawerLayout.openDrawer(GravityCompat.START);
+                return true;
+            case R.id.action_settings:
+                // Settings
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
                 return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    // Define navigation view on click behaviors
+    @Override
+    // Inflate menu_main.xml onto the toolbar (settings icon)
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    // Define navigation drawer's on click behaviors
     private void navDrawer_setItemSelectedBehaviors() {
         navigationView.setNavigationItemSelectedListener(item -> {
             // set item as selected to persist highlight
@@ -285,25 +372,29 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             Resources resources = getResources();
             String itemTitle = item.getTitle().toString();
 
-            if (itemTitle.equals(resources.getString(R.string.section_latest_stories))) {
-                setTitle(resources.getString(R.string.section_latest_stories));
+            if (itemTitle.equals(resources.getString(R.string.nav_latest_stories_title))) {
+                setTitle(resources.getString(R.string.nav_latest_stories_title));
+                // Order by newest (latest) stories
                 query_orderBy = "newest";
-                query_section = "";
-            } else if (itemTitle.equals(resources.getString(R.string.section_news))) {
-                setTitle(resources.getString(R.string.section_news));
-                query_section = resources.getString(R.string.section_news_ids);
-            } else if (itemTitle.equals(resources.getString(R.string.section_opinion))) {
-                setTitle(resources.getString(R.string.section_opinion));
-                query_section = resources.getString(R.string.section_opinion_ids);
-            } else if (itemTitle.equals(resources.getString(R.string.section_sport))) {
-                setTitle(resources.getString(R.string.section_sport));
-                query_section = resources.getString(R.string.section_sport_ids);
-            } else if (itemTitle.equals(resources.getString(R.string.section_culture))) {
-                setTitle(resources.getString(R.string.section_culture));
-                query_section = resources.getString(R.string.section_culture_ids);
-            } else if (itemTitle.equals(resources.getString(R.string.section_lifestyle))) {
-                setTitle(resources.getString(R.string.section_lifestyle));
-                query_section = resources.getString(R.string.section_lifestyle_ids);
+                query_sections = "";
+            } else if (itemTitle.equals(resources.getString(R.string.pillar_news))) {
+                setTitle(resources.getString(R.string.pillar_news));
+                query_sections = resources.getString(R.string.pillar_news_section_ids);
+            } else if (itemTitle.equals(resources.getString(R.string.pillar_opinion))) {
+                setTitle(resources.getString(R.string.pillar_opinion));
+                query_sections = resources.getString(R.string.pillar_opinion_section_ids);
+            } else if (itemTitle.equals(resources.getString(R.string.pillar_sport))) {
+                setTitle(resources.getString(R.string.pillar_sport));
+                query_sections = resources.getString(R.string.pillar_sport_section_ids);
+            } else if (itemTitle.equals(resources.getString(R.string.pillar_culture))) {
+                setTitle(resources.getString(R.string.pillar_culture));
+                query_sections = resources.getString(R.string.pillar_culture_section_ids);
+            } else if (itemTitle.equals(resources.getString(R.string.pillar_lifestyle))) {
+                setTitle(resources.getString(R.string.pillar_lifestyle));
+                query_sections = resources.getString(R.string.pillar_lifestyle_section_ids);
+            } else if (itemTitle.equals(resources.getString(R.string.pillar_more))) {
+                setTitle(resources.getString(R.string.pillar_more));
+                query_sections = resources.getString(R.string.pillar_more_section_ids);
             }
 
             // Reset and restart the Loading process
@@ -322,13 +413,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         });
     }
 
+
     // Set up the Toolbar / Action Bar (show nav drawer icon)
     private void navDrawer_setUpToolbar() {
         android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBar actionbar = getSupportActionBar();
-        actionbar.setDisplayHomeAsUpEnabled(true);
-        actionbar.setHomeAsUpIndicator(R.drawable.ic_menu);
+        if (actionbar != null) {
+            actionbar.setDisplayHomeAsUpEnabled(true);
+            actionbar.setHomeAsUpIndicator(R.drawable.ic_menu);
+        }
     }
 
     //endregion Nav Drawer methods
@@ -364,9 +458,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     //region Utility methods
 
+    // Set the value of a String Shared Preference
+    private void setSharedPreferenceValue(String settingKey, String settingValue) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(settingKey, settingValue);
+        editor.apply();
+    }
+
     // Returns new URL object from the given string URL.
     public static URL createUrl(String stringUrl) {
-        URL url = null;
+        URL url;
         try {
             url = new URL(stringUrl);
         } catch (MalformedURLException exception) {
@@ -376,7 +477,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         return url;
     }
 
-    public boolean isOnline() {
+    private boolean isOnline() {
         if (DEBUG_SIMULATE_NO_CONNECTION) {
             return false;
         }
@@ -432,7 +533,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     // Convert the {@link InputStream} into a String which contains the whole JSON response from the server.
-    public static String readFromStream(InputStream inputStream) throws IOException {
+    private static String readFromStream(InputStream inputStream) throws IOException {
         StringBuilder output = new StringBuilder();
         if (inputStream != null) {
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream, Charset.forName(ENCODING));
@@ -446,6 +547,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         return output.toString();
     }
 
+    // Get a color from resources
+    private int getColorResource(int resourceID) {
+        return getResources().getColor(resourceID);
+    }
+
     //endregion Utility methods
 
     //region Loader callback methods
@@ -456,6 +562,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     @Override
+    // Update the RecyclerView with the newly retrieved list of Stories
     public void onLoadFinished(Loader<ArrayList<Story>> loader, ArrayList<Story> stories) {
         // Hide the progress bar now that the Loader has finished
         setVisibilities(false, true, false);

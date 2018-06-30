@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:title="@string/settings_title">
+
+    <!-- API Query Settings Category -->
+    <PreferenceCategory android:title="@string/category_api_query_settings">
+
+        <!-- Edition -->
+        <ListPreference
+            android:defaultValue="@string/edition_default_value"
+            android:dialogTitle="@string/setting_edition_text"
+            android:entries="@array/settings_edition_names"
+            android:entryValues="@array/settings_edition_values"
+            android:key="@string/edition_key_name"
+            android:title="@string/setting_edition_text" />
+
+        <!-- Order By -->
+        <ListPreference
+            android:defaultValue="@string/order_by_default_value"
+            android:dialogTitle="@string/setting_order_by_text"
+            android:entries="@array/settings_order_by_names"
+            android:entryValues="@array/settings_order_by_values"
+            android:key="@string/order_by_key_name"
+            android:title="@string/setting_order_by_text" />
+
+        <!-- Page Size -->
+        <ListPreference
+            android:defaultValue="@string/page_size_default_value"
+            android:dialogTitle="@string/setting_page_size_text"
+            android:entries="@array/settings_page_size_names"
+            android:entryValues="@array/settings_page_size_values"
+            android:key="@string/page_size_key_name"
+            android:title="@string/setting_page_size_text" />
+
+    </PreferenceCategory>
+
+    <!-- User Interface Settings Category -->
+    <PreferenceCategory android:title="@string/category_user_interface_settings">
+
+        <!-- Color Scheme -->
+        <ListPreference
+            android:defaultValue="@string/color_scheme_default_value"
+            android:dialogTitle="@string/setting_color_scheme_text"
+            android:entries="@array/settings_color_scheme_names"
+            android:entryValues="@array/settings_color_scheme_values"
+            android:key="@string/color_scheme_key_name"
+            android:title="@string/setting_color_scheme_text" />
+
+        <!-- Show Pillar Name -->
+        <SwitchPreference
+            android:defaultValue="@bool/show_pillar_default_value"
+            android:key="@string/internal_show_pillar"
+            android:title="@string/setting_show_pillar_text" />
+
+        <!-- Show Section Name -->
+        <SwitchPreference
+            android:defaultValue="@bool/show_section_default_value"
+            android:key="@string/internal_show_section"
+            android:title="@string/setting_show_section_text" />
+
+        <!-- Show Date -->
+        <SwitchPreference
+            android:defaultValue="@bool/show_date_default_value"
+            android:key="@string/internal_show_date"
+            android:title="@string/setting_show_date_text" />
+
+        <!-- Show Author -->
+        <SwitchPreference
+            android:defaultValue="@bool/show_author_default_value"
+            android:key="@string/internal_show_author"
+            android:title="@string/setting_show_author_text" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

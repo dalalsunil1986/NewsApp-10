@@ -7,27 +7,30 @@
         <item
             android:id="@+id/menu_latest"
             android:checked="true"
-            android:title="Latest Stories" />
+            android:title="@string/nav_latest_stories_title" />
 
         <item
-            android:id="@+id/menu_section_news"
-            android:title="News" />
+            android:id="@+id/menu_pillar_news"
+            android:title="@string/pillar_news" />
 
         <item
-            android:id="@+id/menu_section_opinion"
-            android:title="Opinion" />
+            android:id="@+id/menu_pillar_opinion"
+            android:title="@string/pillar_opinion" />
 
         <item
-            android:id="@+id/menu_section_sport"
-            android:title="Sport" />
+            android:id="@+id/menu_pillar_sport"
+            android:title="@string/pillar_sport" />
 
         <item
-            android:id="@+id/menu_section_culture"
-            android:title="Culture" />
+            android:id="@+id/menu_pillar_culture"
+            android:title="@string/pillar_culture" />
 
         <item
-            android:id="@+id/menu_section_lifestyle"
-            android:title="Lifestyle" />
+            android:id="@+id/menu_pillar_lifestyle"
+            android:title="@string/pillar_lifestyle" />
+
+        <item android:id="@+id/menu_pillar_more"
+            android:title="@string/pillar_more"/>
     </group>
 
 </menu>
