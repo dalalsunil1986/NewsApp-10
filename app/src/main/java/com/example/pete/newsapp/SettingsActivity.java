@@ -13,14 +13,10 @@ import android.util.Log;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    private static SettingsActivity settingsActivity;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-
-        settingsActivity = this;
     }
 
     public static class GuardianPreferenceFragment extends PreferenceFragment

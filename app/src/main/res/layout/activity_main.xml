@@ -38,13 +38,20 @@
                 android:layout_gravity="center"
                 android:visibility="visible" />
 
-            <!-- Layout for a list of stories -->
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/stories_recycler_view"
+            <android.support.v4.widget.SwipeRefreshLayout
+                android:id="@+id/swipe_refresh"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:visibility="gone" />
+                android:layout_height="match_parent">
+
+                <!-- Layout for a list of stories -->
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/stories_recycler_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:visibility="gone" />
+
+            </android.support.v4.widget.SwipeRefreshLayout>
 
             <!-- Empty View for when there's no data -->
             <TextView

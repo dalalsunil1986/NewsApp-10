@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">News App</string>
+    <string name="app_name">Guardian News</string>
 
     <string name="by_string">by %1$s</string>
     <string name="paginator_text">Page %1$s of %2$s</string>
@@ -109,6 +109,7 @@
 
     <!-- Main Pillar Names (as they appear on the website; used as Nav Drawer headers) -->
     <string name="nav_latest_stories_title">Latest Stories</string>
+    <string name="nav_oldest_stories_title">Oldest Stories</string>
     <string name="pillar_news">News</string>
     <string name="pillar_opinion">Opinion</string>
     <string name="pillar_sport">Sport</string>

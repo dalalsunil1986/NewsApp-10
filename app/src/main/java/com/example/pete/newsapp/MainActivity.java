@@ -13,6 +13,7 @@ import android.preference.PreferenceManager;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -24,6 +25,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,7 +41,7 @@ import java.util.Arrays;
 
 import static com.example.pete.newsapp.Story.currentPage;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<ArrayList<Story>> {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<ArrayList<Story>>, SwipeRefreshLayout.OnRefreshListener {
 
     //region Constants and Instance Variables
 
@@ -49,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static final int MS_IN_SECOND = 1000;
     private static final String ENCODING = "UTF-8";
     private static final int LOADER_ID = 0;
+    private static final String SAVED_PARCELABLE_KEY = "savedStoriesArrayKey";
 
     // API-related Constants
     private static final String QUERY_BASE_URL = "https://content.guardianapis.com/search?&show-tags=contributor";
@@ -60,12 +63,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     // Set these booleans to test response validation behaviors
     public static final boolean DEBUG_SIMULATE_SLOW_CONNECTION = false;
-    public static final boolean DEBUG_SIMULATE_NO_CONNECTION = false;
+    private static final boolean DEBUG_SIMULATE_NO_CONNECTION = false;
     public static final boolean DEBUG_SIMULATE_NO_RESULTS = false;
-    private static final boolean DEBUG_LOG_API_QUERY_URLS = true;
+    private static final boolean DEBUG_LOG_API_QUERY_URLS = false;
 
     // Settings / Preferences
     public static SharedPreferences sharedPreferences;
+    private static String currentPillar = "Latest Stories";
 
     // Query parameters (used by .getQueryUrl() to build queries based on user input)
     // (See also: Story.currentPage and Story.totalPages)
@@ -74,13 +78,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private int query_pageSize = 10;
     private String query_edition = "";
 
-    // Pagination variables
-    private StoryAdapter adapter;
+    // Pagination / storyAdapter variables
+    private StoryAdapter storyAdapter;
+    private LinearLayoutManager layoutManager;
     private boolean isLoadingNextPage = false;
 
     // View References
     private TextView emptyView;
     private ProgressBar progressSpinner;
+    private SwipeRefreshLayout swipe_refresh;
     private RecyclerView storiesRecyclerView;
     private android.support.design.widget.AppBarLayout appBarLayout;
     private DrawerLayout drawerLayout;
@@ -94,12 +100,45 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     +: implement Navigation Drawer (see TourGuideApp) (fragments)
     +: browse sections via  Navigation Drawer (discover & confirm sections via 'guardian sections.json')
     +: implement Settings screen
-    todo: Handle screen rotation (don't forget which Pillar was last selected)
+    +: Handle screen rotation (don't forget which Pillar was last selected)
+        See Udacity Lesson 5.7.6: URL Building
         (This should also solve a problem with returning to MainActivity from the SettingsActivity)
         (Be wary of setting the page number in MainActivity.onCreate.
          Maybe it shouldn't be set in onCreate once the above issue has been solved.)
+
+    +: onSave / onRestore Instance States and screen rotation
+        for some reason navDrawer_selectPillar() still has to be called in onCreate
+        the results don't interfere with restoring the storyAdapter contents and its scroll position
+        they're just discarded, I guess
+        + (fixed) figure out why _selectPillar() must be called. Does it have to do with the setVisibilities() stuff I'm doing in onCreate()?
+
+    +: Pull down RecyclerView to refresh it
+        use SwipeRefreshLayout
+
+    +: If sortBy = oldest, change Latest Stories to Oldest Stories
+        (Can cause user confusion if they're on the Latest Stories pillar
+         and change setting to "oldest" but nothing happens)
+
+    todo: Add search feature
+        Should be relatively simple
+        - Icon in toolbar
+        - Clicking icon gives InputText box
+        - Pressing OK in InputText sets a query_search variable
+        - getQueryURL gives the API that search term
+        - getQueryURL also sets query_orderBy to "relevance"
+        - how should rotating screen or leaving MainActivity affect search results?
+          should the user have to navigate away from search results to clear them?
+          should search results have their own back button in the toolbar?
+
+    todo: bug: Set background of appBarLayout when changing themes doesn't work on Nexus 5X device until the app is restarted
+        + Works in Android Emulator
+
+    +: customize app icon
+        See TourGuide app for an example
     */
     //endregion Project Notes
+
+    //region Activity Overrides
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,9 +163,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         // Set up the Toolbar / Action Bar (show nav drawer icon)
         navDrawer_setUpToolbar();
 
-        // Set Action Bar title
-        setTitle(getString(R.string.nav_latest_stories_title));
-
         // Define navigation view on click behaviors
         navDrawer_setItemSelectedBehaviors();
 
@@ -149,13 +185,72 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         // Create an adapter and populate the ListView
         setRecyclerViewAdapter(this, new ArrayList<>());
 
-        // Pass the URL in a Bundle
-        Bundle bundle = new Bundle();
-        bundle.putString("url", getQueryUrl());
+        // Initialize the SwipeRefreshLayout (pull down at the top of the list to refresh)
+        initialize_SwipeRefreshLayout();
 
-        // Start the AsyncTaskLoader
-        getLoaderManager().initLoader(LOADER_ID, bundle, this).forceLoad();
+        // Change UI, reset Loader, load content for selected Pillar
+        if (savedInstanceState == null) {
+            navDrawer_selectPillar(currentPillar, true);
+        } else {
+            // Don't reload the Pillar, just set RecyclerView visible if restoring from saved state
+            setVisibilities(false, true, false);
+        }
+
+        // Select the current Nav Drawer item (otherwise the first item will be selected no matter what Pillar we're in)
+        navDrawer_setSelectedItem();
+
+        Log.d("MainActivity.onCreate", "onCreate was called");
     }
+
+    @Override
+    // Called when leaving Activity (rotating, going to Settings Activity)
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Log.d("onSaveInstanceState", "called");
+
+        // Make sure the Loading Footer isn't in the Stories array (it would interfere with Parceling)
+        storyAdapter.removeLoadingFooter();
+
+        // Save the ArrayList of Stories
+        outState.putParcelableArrayList(SAVED_PARCELABLE_KEY, storyAdapter.getStories());
+
+        Log.d("onSaveInstanceState", storyAdapter.getItemCount() + " items in storyAdapter.");
+    }
+
+    @Override
+    // Called when restoring Activity (rotating)
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        Log.d("onRestoreInstanceState", "called");
+
+        // Make sure the storyAdapter is empty
+        storyAdapter.removeAll();
+
+        // Restore the saved data set (ArrayList of Stories)
+        storyAdapter.addAll(savedInstanceState.getParcelableArrayList(SAVED_PARCELABLE_KEY));
+
+        // Add the Loading Footer
+        storyAdapter.addLoadingFooter();
+
+        Log.d("onRestoreInstanceState", storyAdapter.getItemCount() + " items in storyAdapter.");
+    }
+
+    @Override
+    // Called when returning from Settings by pressing Back button
+    protected void onResume() {
+        super.onResume();
+
+        // Refresh the RecyclerView. This happens automatically if the "Home" button is pressed but not the Back button
+
+        Story.currentPage = 1;
+        storyAdapter.removeAll();
+
+        navDrawer_selectPillar(currentPillar, false);
+
+        Log.d("onResume", "called");
+    }
+
+    //endregion Activity Overrides
 
     // Build the Query URL (using instance variables)
     private String getQueryUrl() {
@@ -179,10 +274,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             query_edition = setting_edition;
         }
 
-        // Override order_by if this is a "latest stories" query
-        if (!query_sections.equals("")) {
-            query_orderBy = setting_orderBy;
-        }
+        query_orderBy = setting_orderBy;
 
         // todo: Ignore orderBy setting if a search is being done (order_by = relevance)
 
@@ -196,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         String param_page_size = "&page-size=" + query_pageSize;
         String param_edition = query_edition.equals("") ? "" : "&production-office=" + query_edition;
 
-        String query = QUERY_BASE_URL + param_orderBy + param_section + param_page_size + "&page=" + currentPage + "&api-key=" + d(E);
+        String query = QUERY_BASE_URL + param_orderBy + param_section + param_edition + param_page_size + "&page=" + currentPage + "&api-key=" + d(E);
 
         if (DEBUG_LOG_API_QUERY_URLS) {
             Log.d("getQueryUrl", query);
@@ -204,32 +296,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         return query;
     }
-
-    //region encoding / decoding sensitive data
-
-    /*
-    Encode a given String
-    Returns the String representation of an encoded byte array
-    This byte array is intended to be hard-coded as a constant
-    */
-    private String e(String key) {
-        byte[] bytes = key.getBytes(Charset.forName(ENCODING));
-        byte[] bytesE = new BigInteger(bytes).shiftLeft(SHIFT_SEED).toByteArray();
-
-        return Arrays.toString(bytesE);
-    }
-
-    /*
-    Decode a given byte array
-    Undoes the encoding done by the e() method
-    d() and e() are used to obfuscate the API Key
-    */
-    private String d(byte[] bytes) {
-        byte[] bytesD = new BigInteger(bytes).shiftRight(SHIFT_SEED).toByteArray();
-        return new String(bytesD, Charset.forName(ENCODING));
-    }
-
-    //endregion encoding / decoding sensitive data
 
     //region UI-related methods
 
@@ -240,16 +306,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
 
         // Create a new StoryAdapter of stories
-        adapter = new StoryAdapter(this, 0, stories);
+        storyAdapter = new StoryAdapter(this, 0, stories);
 
         // Could initialize an ItemAnimator here
 
         // Initialize LayoutManager
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager = new LinearLayoutManager(this);
 
         // Initialize ItemDecorators
         VerticalSpaceItemDecorator verticalSpaceItemDecorator =
-                new VerticalSpaceItemDecorator(VERTICAL_SPACING_RECYCLER_VIEW);
+                new VerticalSpaceItemDecorator();
 
         // For performance, tell OS that RecyclerView won't change size
         storiesRecyclerView.setHasFixedSize(true);
@@ -260,8 +326,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         // Set the ItemDecorators
         storiesRecyclerView.addItemDecoration(verticalSpaceItemDecorator);
 
-        // Attach the adapter to the RecyclerView so that the list will be populated in the user interface
-        storiesRecyclerView.setAdapter(adapter);
+        // Attach the storyAdapter to the RecyclerView so that the list will be populated in the user interface
+        storiesRecyclerView.setAdapter(storyAdapter);
 
         // Set a scroll listener for the storiesRecyclerView
         // (Support pagination - infinite scrolling behavior)
@@ -307,6 +373,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     // Get references to Views in activity_main.xml, store them in instance variables of MainActivity
     private void getViewReferences_MainActivity() {
         // Main Activity Views
+        swipe_refresh = findViewById(R.id.swipe_refresh);
         storiesRecyclerView = findViewById(R.id.stories_recycler_view);
         emptyView = findViewById(R.id.empty_text_view);
         progressSpinner = findViewById(R.id.progress_spinner);
@@ -334,11 +401,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
     }
 
+    // Display Toast notification
+    public static void displayToast(Context context, String textToShow) {
+        int duration = Toast.LENGTH_LONG;
+        Toast toast = Toast.makeText(context, textToShow, duration);
+        toast.show();
+    }
+
     //endregion UI-related methods
 
-    //region Nav Drawer methods
+    //region Nav Drawer, ActionBar methods
 
     @Override
+    // Open Nav Drawer or Settings (ActionBar buttons)
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
@@ -362,59 +437,129 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         return super.onCreateOptionsMenu(menu);
     }
 
-    // Define navigation drawer's on click behaviors
+    // Handle Nav Drawer item clicks (Latest Stories, News, etc)
     private void navDrawer_setItemSelectedBehaviors() {
         navigationView.setNavigationItemSelectedListener(item -> {
-            // set item as selected to persist highlight
+            // Set item as selected to persist highlight
             item.setChecked(true);
 
-            // close drawer when item is selected
+            // Close Nav Drawer after item selected
             drawerLayout.closeDrawers();
 
-            Resources resources = getResources();
+            // The title of the Nav Drawer item is the title of the Pillar
             String itemTitle = item.getTitle().toString();
 
-            if (itemTitle.equals(resources.getString(R.string.nav_latest_stories_title))) {
-                setTitle(resources.getString(R.string.nav_latest_stories_title));
-                // Order by newest (latest) stories
-                query_orderBy = "newest";
-                query_sections = "";
-            } else if (itemTitle.equals(resources.getString(R.string.pillar_news))) {
-                setTitle(resources.getString(R.string.pillar_news));
-                query_sections = resources.getString(R.string.pillar_news_section_ids);
-            } else if (itemTitle.equals(resources.getString(R.string.pillar_opinion))) {
-                setTitle(resources.getString(R.string.pillar_opinion));
-                query_sections = resources.getString(R.string.pillar_opinion_section_ids);
-            } else if (itemTitle.equals(resources.getString(R.string.pillar_sport))) {
-                setTitle(resources.getString(R.string.pillar_sport));
-                query_sections = resources.getString(R.string.pillar_sport_section_ids);
-            } else if (itemTitle.equals(resources.getString(R.string.pillar_culture))) {
-                setTitle(resources.getString(R.string.pillar_culture));
-                query_sections = resources.getString(R.string.pillar_culture_section_ids);
-            } else if (itemTitle.equals(resources.getString(R.string.pillar_lifestyle))) {
-                setTitle(resources.getString(R.string.pillar_lifestyle));
-                query_sections = resources.getString(R.string.pillar_lifestyle_section_ids);
-            } else if (itemTitle.equals(resources.getString(R.string.pillar_more))) {
-                setTitle(resources.getString(R.string.pillar_more));
-                query_sections = resources.getString(R.string.pillar_more_section_ids);
-            }
-
-            // Reset and restart the Loading process
-            adapter.removeAll();
-
-            Story.currentPage = 1;
-
-            // Pass the URL in a Bundle
-            Bundle bundle = new Bundle();
-            bundle.putString("url", getQueryUrl());
-
-            // Restart the AsyncTaskLoader
-            getLoaderManager().restartLoader(LOADER_ID, bundle, mainActivity).forceLoad();
+            // Change UI, reset Loader, load content for selected Pillar
+            navDrawer_selectPillar(itemTitle, false);
 
             return true;
         });
     }
 
+    // Set which Nav Drawer item is selected (used when restoring Main Activity's state)
+    private void navDrawer_setSelectedItem() {
+        if (currentPillar.equals(getString(R.string.nav_latest_stories_title)) ||
+                currentPillar.equals(getString(R.string.nav_oldest_stories_title))) {
+            navigationView.getMenu().findItem(R.id.menu_latest).setChecked(true);
+        } else if (currentPillar.equals(getString(R.string.pillar_news))) {
+            navigationView.getMenu().findItem(R.id.menu_pillar_news).setChecked(true);
+        } else if (currentPillar.equals(getString(R.string.pillar_opinion))) {
+            navigationView.getMenu().findItem(R.id.menu_pillar_opinion).setChecked(true);
+        } else if (currentPillar.equals(getString(R.string.pillar_sport))) {
+            navigationView.getMenu().findItem(R.id.menu_pillar_sport).setChecked(true);
+        } else if (currentPillar.equals(getString(R.string.pillar_culture))) {
+            navigationView.getMenu().findItem(R.id.menu_pillar_culture).setChecked(true);
+        } else if (currentPillar.equals(getString(R.string.pillar_lifestyle))) {
+            navigationView.getMenu().findItem(R.id.menu_pillar_lifestyle).setChecked(true);
+        } else if (currentPillar.equals(getString(R.string.pillar_more))) {
+            navigationView.getMenu().findItem(R.id.menu_pillar_more).setChecked(true);
+        } else {
+            Log.d("navDrawer_setSelectedIt", "Unknown pillar title: " + currentPillar);
+        }
+    }
+
+    // Change UI, reset Loader, load content for selected Pillar
+    private void navDrawer_selectPillar(String pillarTitle, boolean initLoader) {
+        Resources resources = getResources();
+
+        // Change between "Latest Stories" or "Oldest Stories" based on setting Order By
+        String allStoriesTitle = navDrawer_latestOrOldestStoriesName();
+
+        if (pillarTitle.equals(resources.getString(R.string.nav_latest_stories_title)) || pillarTitle.equals(resources.getString(R.string.nav_oldest_stories_title))) {
+            // Don't need to filter by Sections (just show everything)
+            setTitle(allStoriesTitle);
+            query_sections = "";
+        } else if (pillarTitle.equals(resources.getString(R.string.pillar_news))) {
+            setTitle(resources.getString(R.string.pillar_news));
+            query_sections = resources.getString(R.string.pillar_news_section_ids);
+        } else if (pillarTitle.equals(resources.getString(R.string.pillar_opinion))) {
+            setTitle(resources.getString(R.string.pillar_opinion));
+            query_sections = resources.getString(R.string.pillar_opinion_section_ids);
+        } else if (pillarTitle.equals(resources.getString(R.string.pillar_sport))) {
+            setTitle(resources.getString(R.string.pillar_sport));
+            query_sections = resources.getString(R.string.pillar_sport_section_ids);
+        } else if (pillarTitle.equals(resources.getString(R.string.pillar_culture))) {
+            setTitle(resources.getString(R.string.pillar_culture));
+            query_sections = resources.getString(R.string.pillar_culture_section_ids);
+        } else if (pillarTitle.equals(resources.getString(R.string.pillar_lifestyle))) {
+            setTitle(resources.getString(R.string.pillar_lifestyle));
+            query_sections = resources.getString(R.string.pillar_lifestyle_section_ids);
+        } else if (pillarTitle.equals(resources.getString(R.string.pillar_more))) {
+            setTitle(resources.getString(R.string.pillar_more));
+            query_sections = resources.getString(R.string.pillar_more_section_ids);
+        }
+
+        // Store the last selected Pillar so that it can be restored (leaving MainActivity, rotating screen)
+        currentPillar = pillarTitle;
+
+        // Reset and restart the Loading process
+        storyAdapter.removeAll();
+
+        Story.currentPage = 1;
+
+        // Pass the URL in a Bundle
+        Bundle bundle = new Bundle();
+        bundle.putString("url", getQueryUrl());
+
+        if (initLoader) {
+            // Start the AsyncTaskLoader
+            getLoaderManager().initLoader(LOADER_ID, bundle, this).forceLoad();
+        } else {
+            // Restart the AsyncTaskLoader
+            getLoaderManager().restartLoader(LOADER_ID, bundle, mainActivity).forceLoad();
+        }
+    }
+
+    /*
+    The Latest Stories menu item can also be Oldest Stories, depending on user preferences
+    This method sets the title of the menu item
+    It returns the title so that navDrawer_selectPillar can set the ActionBar title if necessary
+    */
+    private String navDrawer_latestOrOldestStoriesName() {
+        Resources resources = getResources();
+        String result;
+
+        // Get the orderBy setting from sharedPreferences
+        String setting_orderBy = sharedPreferences.getString(
+                getString(R.string.order_by_key_name),
+                getString(R.string.order_by_default_value));
+
+        if (setting_orderBy.equals(getString(R.string.api_order_by_oldest))) {
+            // User chose "Latest Stories" and "Sort By Oldest" at the same time
+            result = resources.getString(R.string.nav_oldest_stories_title);
+
+            // Change the title of the Nav Drawer item
+            navigationView.getMenu().findItem(R.id.menu_latest).setTitle(getString(R.string.nav_oldest_stories_title));
+        } else {
+            // User chose "Latest Stories" and "Sort By Newest"
+            result = resources.getString(R.string.nav_latest_stories_title);
+
+            // Change the title of the Nav Drawer item
+            navigationView.getMenu().findItem(R.id.menu_latest).setTitle(getString(R.string.nav_latest_stories_title));
+        }
+
+        return result;
+    }
 
     // Set up the Toolbar / Action Bar (show nav drawer icon)
     private void navDrawer_setUpToolbar() {
@@ -427,7 +572,26 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
     }
 
-    //endregion Nav Drawer methods
+    //endregion Nav Drawer, ActionBar methods
+
+    //region SwipeRefreshLayout implementation
+
+    // Set onRefreshListener for SwipeRefreshLayout
+    private void initialize_SwipeRefreshLayout() {
+        swipe_refresh.setOnRefreshListener(mainActivity);
+    }
+
+    @Override
+    public void onRefresh() {
+        Story.currentPage = 1;
+        storyAdapter.removeAll();
+
+        navDrawer_selectPillar(currentPillar, false);
+
+        swipe_refresh.setRefreshing(false);
+    }
+
+    //endregion SwipeRefreshLayout implementation
 
     //region RecyclerView Decorator Inner Classes
 
@@ -440,8 +604,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         private final int verticalSpaceHeight;
 
-        VerticalSpaceItemDecorator(int verticalSpaceHeight) {
-            this.verticalSpaceHeight = verticalSpaceHeight;
+        VerticalSpaceItemDecorator() {
+            this.verticalSpaceHeight = VERTICAL_SPACING_RECYCLER_VIEW;
         }
 
         @Override
@@ -556,6 +720,32 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     //endregion Utility methods
 
+    //region encoding / decoding
+
+    /*
+    Encode a given String
+    Returns the String representation of an encoded byte array
+    This byte array is intended to be hard-coded as a constant
+    */
+    private String e(String key) {
+        byte[] bytes = key.getBytes(Charset.forName(ENCODING));
+        byte[] bytesE = new BigInteger(bytes).shiftLeft(SHIFT_SEED).toByteArray();
+
+        return Arrays.toString(bytesE);
+    }
+
+    /*
+    Decode a given byte array
+    Undoes the encoding done by the e() method
+    d() and e() are used to obfuscate the API Key
+    */
+    private String d(byte[] bytes) {
+        byte[] bytesD = new BigInteger(bytes).shiftRight(SHIFT_SEED).toByteArray();
+        return new String(bytesD, Charset.forName(ENCODING));
+    }
+
+    //endregion encoding / decoding
+
     //region Loader callback methods
 
     @Override
@@ -571,22 +761,22 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         if (stories.size() > 0) {
             // Remove the list_item_paginator_loading from the end of RecyclerView
-            adapter.removeLoadingFooter();
+            storyAdapter.removeLoadingFooter();
             isLoadingNextPage = false;
 
-            // Add all the results to the adapter
-            adapter.addAll(stories);
+            // Add all the results to the storyAdapter
+            storyAdapter.addAll(stories);
 
             // Add list_item_paginator_loading to the end of RecyclerView
             if (!isLastPage()) {
-                adapter.addLoadingFooter();
+                storyAdapter.addLoadingFooter();
             }
 
             // Show only the RecyclerView
             setVisibilities(false, true, false);
         } else {
             // No results. Show only the empty TextView
-            if (adapter.getItemCount() == 0) {
+            if (storyAdapter.getItemCount() == 0) {
                 setVisibilities(false, false, true);
             }
         }

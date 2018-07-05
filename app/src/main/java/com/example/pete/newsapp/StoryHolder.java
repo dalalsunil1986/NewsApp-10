@@ -131,6 +131,11 @@ class StoryHolder extends RecyclerView.ViewHolder implements View.OnClickListene
             setting_show_pillar = false;
         }
 
+        // If the author text is blank, hide the Author TextView
+        if (authorTextView.getText().equals("")) {
+            setting_show_author = false;
+        }
+
         // Set visibilities
         pillarNameTextView.setVisibility(setting_show_pillar ? View.VISIBLE : View.GONE);
         sectionNameTextView.setVisibility(setting_show_section ? View.VISIBLE : View.GONE);

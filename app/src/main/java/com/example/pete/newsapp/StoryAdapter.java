@@ -92,6 +92,10 @@ public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
     }
 
+    public ArrayList<Story> getStories() {
+        return stories;
+    }
+
     private void add(Story story) {
         stories.add(story);
         notifyItemInserted(stories.size() - 1);
@@ -120,7 +124,7 @@ public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
     public void addLoadingFooter() {
         isLoadingAdded = true;
-        add(new Story("","", "", "", "", ""));
+        add(new Story("", "", "", "", "", ""));
     }
 
     public void removeLoadingFooter() {

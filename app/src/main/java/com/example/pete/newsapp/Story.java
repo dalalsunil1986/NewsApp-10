@@ -1,5 +1,8 @@
 package com.example.pete.newsapp;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -11,7 +14,9 @@ import static com.example.pete.newsapp.MainActivity.createUrl;
 /*
 Represents a Guardian news article
 */
-class Story {
+class Story implements Parcelable {
+
+    //region Constants and Instance Variables
 
     // Constants
     // https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
@@ -32,6 +37,8 @@ class Story {
     private String author; // Author = first contributor
     private String url;
 
+    //endregion Constants and Instance Variables
+
     public Story(String pillarName, String sectionName, String title, String date, String author, String url) {
         setPillarName(pillarName);
         setSectionName(sectionName);
@@ -40,6 +47,51 @@ class Story {
         setAuthor(author);
         setUrl(url);
     }
+
+    //region Parcelable methods
+
+    // Restore from saved parcel
+    private Story(Parcel parcel) {
+        String[] data = new String[6];
+
+        parcel.readStringArray(data);
+
+        setPillarName(data[0]);
+        setSectionName(data[1]);
+        setTitle(data[2]);
+        setDate(data[3]);
+        setAuthor(data[4]);
+        setUrl(data[5]);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeStringArray(new String[] {this.pillarName,
+                                            this.sectionName,
+                                            this.title,
+                                            this.date,
+                                            this.author,
+                                            this.url});
+    }
+
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public Story createFromParcel(Parcel in) {
+            return new Story(in);
+        }
+
+        public Story[] newArray(int size) {
+            return new Story[size];
+        }
+    };
+
+    //endregion Parcelable methods
+
+    //region Getters and Setters
 
     public String getSectionName() {
         return sectionName;
@@ -128,5 +180,7 @@ class Story {
     private void setPillarName(String pillarName) {
         this.pillarName = pillarName;
     }
+
+    //endregion Getters and Setters
 
 }
