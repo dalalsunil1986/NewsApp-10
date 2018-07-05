@@ -1,7 +1,7 @@
 # NewsApp
 An Android app that queries the Guardian API for news articles.
 
-This is Project 6 (News App Stage 1) for the Udacity Android Basics Nanodegree.
+This is Project 7 (News App Stage 2) for the Udacity Android Basics Nanodegree.
 
 <ul>
   <h3>Features:</h3>
