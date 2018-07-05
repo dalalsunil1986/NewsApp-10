@@ -8,6 +8,8 @@ This is Project 6 (News App Stage 1) for the Udacity Android Basics Nanodegree.
   <li>Uses Loader to make API requests on a background thread</li>
   <li>Uses RecyclerView and CardViews</li>
   <li>Pagination (infinite scrolling) - requests additional pages of results as needed</li>
+  <li>Navigation Drawer to browse different Pillars (sets of Sections) of The Guardian</li>
+  <li>Settings (sharedPreferences) which affect API query results</li>
 </ul>
 
 <br>
@@ -15,7 +17,13 @@ This is Project 6 (News App Stage 1) for the Udacity Android Basics Nanodegree.
 <table>
   <tr>
     <td>
-      <img src="screenshot1.png"  width="500">
+      <img src="screenshot2.png">
+    </td>
+        <td>
+      <img src="screenshot1.png">
+    </td>
+        <td>
+      <img src="screenshot3.png">
     </td>
   </tr>
 </table>
