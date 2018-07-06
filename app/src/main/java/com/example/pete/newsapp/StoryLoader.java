@@ -18,6 +18,8 @@ import static com.example.pete.newsapp.MainActivity.makeHttpRequest;
 
 class StoryLoader extends AsyncTaskLoader<ArrayList<Story>> {
 
+    private static final int SLOW_CONNECTION_DELAY_MILLISECONDS = 3000;
+
     private final URL url;
 
     StoryLoader(Context context, URL url) {
@@ -31,7 +33,7 @@ class StoryLoader extends AsyncTaskLoader<ArrayList<Story>> {
         // Simulate a slow internet connection (test the progress spinner animation)
         if (DEBUG_SIMULATE_SLOW_CONNECTION) {
             try {
-                Thread.sleep(3000);
+                Thread.sleep(SLOW_CONNECTION_DELAY_MILLISECONDS);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

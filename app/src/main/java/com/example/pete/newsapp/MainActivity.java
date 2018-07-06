@@ -480,6 +480,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     // Change UI, reset Loader, load content for selected Pillar
     private void navDrawer_selectPillar(String pillarTitle, boolean initLoader) {
+        // Show the progress spinner
+        setVisibilities(true, false, false);
+
         Resources resources = getResources();
 
         // Change between "Latest Stories" or "Oldest Stories" based on setting Order By
@@ -576,9 +579,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     //region SwipeRefreshLayout implementation
 
-    // Set onRefreshListener for SwipeRefreshLayout
+    // SwipeRefreshLayout: set onRefreshListener, set colors
     private void initialize_SwipeRefreshLayout() {
+        // Set onRefresh Listener
         swipe_refresh.setOnRefreshListener(mainActivity);
+
+        // Set colors
+        swipe_refresh.setColorSchemeColors(getColorResource(R.color.theme_accent));
     }
 
     @Override
